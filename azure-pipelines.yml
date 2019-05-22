@@ -1,0 +1,47 @@
+name: $(BuildDefinitionName)-$(SourceBranchName)-$(Date:yyyyMMddHHmm)
+
+trigger:
+  - master
+  - develop
+  - releases/*
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - powershell: |
+      New-Item -Path target -ItemType Directory -Force
+      New-Item -Path jar -ItemType Directory -Force
+    displayName: Prepare build output directories
+  - script: docker build -f ./ci.Dockerfile -t local-test-hexstrings:$(Build.BuildId) .
+    displayName: Build container image for CI
+  - powershell: docker run --rm -v $PWD/target:/usr/local/hexstrings/target local-test-hexstrings:$(Build.BuildId) sh -c "./mvnw -V -P azure-devops --no-transfer-progress package javadoc:jar && chmod -R a+rwx target"
+    displayName: Build hexstrings
+  - script: |
+      mv target/*-javadoc.jar target/apidocs/
+      mv target/*.jar jar/
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: target/surefire-reports/TEST-*.xml
+      failTaskOnFailedTests: true
+      testRunTitle: HexStrings
+      buildPlatform: x64
+      publishRunAttachments: true
+  - task: PublishCodeCoverageResults@1
+    inputs:
+      codeCoverageTool: jaCoCo
+      summaryFileLocation: target/site/jacoco/jacoco.xml
+      reportDirectory: target/site/jacoco
+      additionalCodeCoverageFiles: target/jacoco.exec
+      failIfCoverageEmpty: true
+  - task: PublishPipelineArtifact@0
+    inputs:
+      artifactName: Library JAR
+      targetPath: jar
+    displayName: Publish library JAR
+  - task: PublishPipelineArtifact@0
+    inputs:
+      artifactName: Javadoc
+      targetPath: target/apidocs
+    displayName: Publish javadoc

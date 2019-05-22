@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2017-2019 RevEngineer.eu
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <groupId>eu.revengineer.io</groupId>
+    <artifactId>hexstrings</artifactId>
+    <version>0.9.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    
+    <name>HexStrings</name>
+    <inceptionYear>2017</inceptionYear>
+    <description>A library dedicated to hex string parsing and generation.</description>
+    <organization>
+        <name>RevEngineer.eu</name>
+        <url>https://revengineer.eu/</url>
+    </organization>
+    <scm>
+        <url>https://github.com/savormix/hexstrings</url>
+        <connection>scm:git:https://github.com/savormix/hexstrings.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:savormix/hexstrings.git</developerConnection>
+    </scm>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        
+        <java.version>8</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        
+        <junit.jupiter.version>5.4.2</junit.jupiter.version>
+        <java.allocation.instrumenter.version>3.1.0</java.allocation.instrumenter.version>
+        
+        <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+        <maven.jar.plugin.version>3.1.2</maven.jar.plugin.version>
+        <!-- Due to https://issues.apache.org/jira/browse/SUREFIRE-1546 -->
+        <maven.surefire.plugin.version>3.0.0-M4-SNAPSHOT</maven.surefire.plugin.version>
+        <jacoco.maven.plugin.version>0.8.4</jacoco.maven.plugin.version>
+        <dependencypath.maven.plugin.version>1.1.1</dependencypath.maven.plugin.version>
+        <maven.javadoc.plugin.version>3.1.0</maven.javadoc.plugin.version>
+        <maven.toolchains.plugin.version>1.1</maven.toolchains.plugin.version>
+        <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
+    </properties>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven.jar.plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Automatic-Module-Name>hexstrings</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.plugin.version}</version>
+                <configuration>
+                    <argLine>
+                        -javaagent:${org.jacoco:org.jacoco.agent:jar:runtime}=destfile=${project.build.directory}${file.separator}jacoco.exec
+                        -javaagent:${com.google.code.java-allocation-instrumenter:java-allocation-instrumenter:jar}
+                    </argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.maven.plugin.version}</version>
+                <executions>
+                    <!-- Used to verify argLine when updating jaCoCo version -->
+                    <!-- execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution -->
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>target/jacoco.exec</dataFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.bitstrings.maven.plugins</groupId>
+                <artifactId>dependencypath-maven-plugin</artifactId>
+                <version>${dependencypath.maven.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>set-all</id>
+                        <goals>
+                            <goal>set</goal>
+                        </goals>
+                        <configuration>
+                            <propertySets>
+                                <propertySet>
+                                    <includes>
+                                        <include>com.google.code.java-allocation-instrumenter:java-allocation-instrumenter:jar</include>
+                                        <include>org.jacoco:org.jacoco.agent:jar:runtime</include>
+                                    </includes>
+                                </propertySet>
+                            </propertySets>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven.javadoc.plugin.version}</version>
+                <configuration>
+                    <failOnError>true</failOnError>
+                    <failOnWarnings>true</failOnWarnings>
+                    <keywords>true</keywords>
+                    <top><![CDATA[<a href="${project.build.finalName}-javadoc.jar">Download the JavaDoc JAR</a>]]></top>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <version>${maven.toolchains.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>select-jdk</id>
+                        <goals>
+                            <goal>toolchain</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <toolchains>
+                        <jdk>
+                            <!-- ASM6 that is shaded into java-allocation-instrumenter can only read classes of version 53 (Java 9) or lower -->
+                            <version>[${java.version}},10)</version>
+                        </jdk>
+                    </toolchains>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven.release.plugin.version}</version>
+                <configuration>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.agent</artifactId>
+            <version>${jacoco.maven.plugin.version}</version>
+            <classifier>runtime</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.java-allocation-instrumenter</groupId>
+            <artifactId>java-allocation-instrumenter</artifactId>
+            <version>${java.allocation.instrumenter.version}</version>
+            <scope>test</scope>
+            <exclusions> <!-- Shaded into the JAR; not used as individual dependencies -->
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+    
+    <distributionManagement>
+        <repository>
+            <id>revengineer</id>
+            <name>Releases</name>
+            <url>http://maven.revengineer.eu:8081/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>revengineer</id>
+            <name>Snapshots</name>
+            <url>http://maven.revengineer.eu:8081/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>apache.snapshots</id>
+            <url>http://repository.apache.org/snapshots/</url>
+        </pluginRepository>
+    </pluginRepositories>
+    
+    <profiles>
+        <profile>
+            <id>azure-devops</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-toolchains-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>select-jdk</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
