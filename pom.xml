@@ -28,6 +28,7 @@
     <name>HexStrings</name>
     <inceptionYear>2017</inceptionYear>
     <description>A library dedicated to hex string parsing and generation.</description>
+    <url>https://hexstrings.revengineer.eu/</url>
     <organization>
         <name>RevEngineer.eu</name>
         <url>https://revengineer.eu/</url>
@@ -37,6 +38,10 @@
         <connection>scm:git:https://github.com/savormix/hexstrings.git</connection>
         <developerConnection>scm:git:ssh://git@github.com:savormix/hexstrings.git</developerConnection>
     </scm>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/savormix/hexstrings/issues</url>
+    </issueManagement>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -55,8 +60,13 @@
         <jacoco.maven.plugin.version>0.8.4</jacoco.maven.plugin.version>
         <dependencypath.maven.plugin.version>1.1.1</dependencypath.maven.plugin.version>
         <maven.javadoc.plugin.version>3.1.0</maven.javadoc.plugin.version>
+        <maven.source.plugin.version>3.1.0</maven.source.plugin.version>
+        <maven.resources.plugin.version>3.1.0</maven.resources.plugin.version>
         <maven.toolchains.plugin.version>1.1</maven.toolchains.plugin.version>
+        <maven.deploy.plugin.version>3.0.0-M1</maven.deploy.plugin.version>
         <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
+    
+        <javadoc.top.element />
     </properties>
     
     <build>
@@ -72,6 +82,7 @@
                     <archive>
                         <manifest>
                             <addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                         <manifestEntries>
                             <Automatic-Module-Name>hexstrings</Automatic-Module-Name>
@@ -150,8 +161,12 @@
                     <failOnError>true</failOnError>
                     <failOnWarnings>true</failOnWarnings>
                     <keywords>true</keywords>
-                    <top><![CDATA[<a href="${project.build.finalName}-javadoc.jar">Download the JavaDoc JAR</a>]]></top>
+                    <top>${javadoc.top.element}</top>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven.source.plugin.version}</version>
             </plugin>
             <plugin>
                 <artifactId>maven-toolchains-plugin</artifactId>
@@ -172,6 +187,10 @@
                         </jdk>
                     </toolchains>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${maven.deploy.plugin.version}</version>
             </plugin>
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
@@ -249,6 +268,14 @@
     <profiles>
         <profile>
             <id>azure-devops</id>
+            <properties>
+                <javadoc.top.element>
+                    <![CDATA[Download:
+                        <a href="${project.build.finalName}.jar">Library JAR</a> |
+                        <a href="${project.build.finalName}-javadoc.jar">JavaDoc JAR</a> |
+                        <a href="${project.build.finalName}-sources.jar">Sources JAR</a>]]>
+                </javadoc.top.element>
+            </properties>
             <build>
                 <plugins>
                     <plugin>

@@ -15,11 +15,17 @@ steps:
     displayName: Prepare build output directories
   - script: docker build -f ./ci.Dockerfile -t local-test-hexstrings:$(Build.BuildId) .
     displayName: Build container image for CI
-  - powershell: docker run --rm -v $PWD/target:/usr/local/hexstrings/target local-test-hexstrings:$(Build.BuildId) sh -c "./mvnw -V -P azure-devops --no-transfer-progress package javadoc:jar && chmod -R a+rwx target"
+  - powershell: docker run --rm -v $PWD/target:/usr/local/hexstrings/target local-test-hexstrings:$(Build.BuildId) sh -c "./mvnw -V -P azure-devops --no-transfer-progress package javadoc:jar && ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout > target/version.txt && chmod -R a+rwx target"
     displayName: Build hexstrings
+  - powershell: |
+      $version = cat target/version.txt
+      Write-Host "##vso[task.setvariable variable=HexStringsVersion]$version"
+      echo $version
+    displayName: Get version
   - script: |
       mv target/*-javadoc.jar target/apidocs/
       mv target/*.jar jar/
+      ls target/apidocs
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
@@ -45,3 +51,12 @@ steps:
       artifactName: Javadoc
       targetPath: target/apidocs
     displayName: Publish javadoc
+  - task: FtpUpload@1
+    inputs:
+      credentialsOption: serviceEndpoint
+      serverEndpoint: hexstrings-javadoc
+      rootDirectory: target/apidocs/
+      remoteDirectory: $(HexStringsVersion)
+      clean: true
+      preservePaths: true
+    displayName: Upload javadoc
